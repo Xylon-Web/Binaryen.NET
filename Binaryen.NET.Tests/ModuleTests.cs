@@ -70,6 +70,30 @@ namespace Binaryen.NET.Tests
         }
 
         [Fact]
+        public void ToBinary_ShouldReturnNonEmptyByteArray()
+        {
+            using var module = new Module();
+            byte[] binary = module.ToBinary();
+
+            Assert.NotNull(binary);
+            Assert.NotEmpty(binary);
+        }
+
+        [Fact]
+        public void ToBinary_CanBeCalledMultipleTimes()
+        {
+            using var module = new Module();
+            byte[] binary1 = module.ToBinary();
+            byte[] binary2 = module.ToBinary();
+
+            Assert.NotNull(binary1);
+            Assert.NotEmpty(binary1);
+            Assert.NotNull(binary2);
+            Assert.NotEmpty(binary2);
+            Assert.Equal(binary1.Length, binary2.Length); // basic sanity check
+        }
+
+        [Fact]
         public void Dispose_CanBeCalledMultipleTimes()
         {
             using var module = new Module();
