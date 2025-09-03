@@ -11,6 +11,11 @@ This means the NuGet package does not work on other platforms by default.
 If you are using a different platform and can provide the necessary binaries, contributions adding them to the `runtimes/` folder are welcome.
 
 ## Building
+Ensure all Git submodules are up to date:
+```bash
+git submodule update --init --recursive
+```
+
 - **If you only changed C# code:** The project automatically uses the pre-built native binaries from `runtimes/`, no manual compilation is needed.
 - **If you updated Binaryen itself:** Rebuild Binaryen as a shared library, then place the compiled binaries for each target runtime into the `runtimes/` folder.
 
