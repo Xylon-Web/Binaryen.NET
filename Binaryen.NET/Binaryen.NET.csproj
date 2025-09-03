@@ -11,6 +11,7 @@
 	<PackageTags>was;wabt;wasp;wasm;wat</PackageTags>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<Authors>Tweety</Authors>
   </PropertyGroup>
 
 	<ItemGroup>
