@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PackAsTool)' != 'true'">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<!-- Native libraries -->
+		<None Include="$(SolutionDir)runtimes\win-x64\native\libbinaryen.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Copy Native DLL -->
+		<None Include="$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>
