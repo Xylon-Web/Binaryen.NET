@@ -5,7 +5,7 @@ namespace Binaryen.NET;
 /// <summary>
 /// Modules contain lists of functions, imports, exports, function types.
 /// </summary>
-public class Module : IDisposable
+public class BinaryenModule : IDisposable
 {
     #region Native
     [DllImport(Interop.CPPDLL, CallingConvention = CallingConvention.Cdecl)]
@@ -34,26 +34,36 @@ public class Module : IDisposable
     string externalBaseName,
     IntPtr paramTypes,
     IntPtr resultTypes);
+
+    [DllImport(Interop.CPPDLL, CallingConvention = CallingConvention.Cdecl)]
+    private extern static IntPtr BinaryenAddFunction(
+    IntPtr module,
+    string name,
+    IntPtr paramTypes,
+    IntPtr resultTypes,
+    IntPtr[] varTypes,
+    uint numVarTypes,
+    IntPtr body);
     #endregion
 
     /// <summary> Pointer to the native class. </summary>
     internal IntPtr Handle { get; set; }
     private bool _disposed;
 
-    /// <summary> Creates a new instance of <see cref="Module"/>. </summary>
-    public Module() => Handle = BinaryenModuleCreate();
+    /// <summary> Creates a new instance of <see cref="BinaryenModule"/>. </summary>
+    public BinaryenModule() => Handle = BinaryenModuleCreate();
 
-    /// <summary> Creates a new instance of <see cref="Module"/> from the given pointer. </summary>
-    internal Module(IntPtr handle) => Handle = handle;
+    /// <summary> Creates a new instance of <see cref="BinaryenModule"/> from the given pointer. </summary>
+    internal BinaryenModule(IntPtr handle) => Handle = handle;
 
     /// <summary> Finalizer. </summary>
-    ~Module() => Dispose();
+    ~BinaryenModule() => Dispose();
 
     /// <summary>
-    /// Creates a new instance of <see cref="Module"/> from the given WAT string.
+    /// Creates a new instance of <see cref="BinaryenModule"/> from the given WAT string.
     /// </summary>
     /// <param name="wat"> The WAT string. </param>
-    public static Module Parse(string wat) => new Module(BinaryenModuleParse(wat));
+    public static BinaryenModule Parse(string wat) => new BinaryenModule(BinaryenModuleParse(wat));
 
     /// <summary> Adds a function export to the module. </summary>
     public void AddFunctionExport(string internalName, string externalName) => BinaryenAddFunctionExport(Handle, internalName, externalName);
@@ -64,16 +74,13 @@ public class Module : IDisposable
         string externalModuleName,
         string externalBaseName,
         IEnumerable<BinaryenType> paramTypes,
-        IEnumerable<BinaryenType> resultTypes)
+        BinaryenType resultType)
     {
-        if (paramTypes == null) 
-            throw new ArgumentNullException(nameof(paramTypes));
-
-        if (resultTypes == null)
-            throw new ArgumentNullException(nameof(resultTypes));
+        // No types specified, use default types
+        if (paramTypes.Count() == 0)
+            paramTypes = new BinaryenType[] { BinaryenType.None };
 
         IntPtr paramTypesHandle = BinaryenType.Combine(paramTypes.ToArray()).Handle;
-        IntPtr resultTypesHandle = BinaryenType.Combine(resultTypes.ToArray()).Handle;
 
         BinaryenAddFunctionImport(
             Handle,
@@ -81,14 +88,46 @@ public class Module : IDisposable
             externalModuleName,
             externalBaseName,
             paramTypesHandle,
-            resultTypesHandle);
+            resultType.Handle);
     }
+
+    /// <summary> Adds a function to the module. </summary>
+    public IntPtr AddFunction(
+        string name,
+        IEnumerable<BinaryenType> paramTypes,
+        BinaryenType resultType,
+        IEnumerable<BinaryenType> localTypes,
+        BinaryenExpression body)
+    {
+        if (paramTypes.Count() == 0)
+            paramTypes = new[] { BinaryenType.None };
+        if (resultType == null)
+            resultType = BinaryenType.None;
+
+        IntPtr paramHandle = BinaryenType.Combine(paramTypes.ToArray()).Handle;
+        IntPtr resultHandle = resultType.Handle;
+
+        // locals must be passed as raw array of IntPtr
+        IntPtr[] localHandles = localTypes.Select(t => t.Handle).ToArray();
+        uint numLocals = (uint)localHandles.Length;
+
+        return BinaryenAddFunction(
+            Handle,
+            name,
+            paramHandle,
+            resultHandle,
+            localHandles,
+            numLocals,
+            body.Handle);
+    }
+
+
 
     /// <summary> Converts the module to a Web Assembly Text (WAT) string. </summary>
     public string ToText()
     {
         if (Handle == IntPtr.Zero)
-            throw new ObjectDisposedException(nameof(Module));
+            throw new ObjectDisposedException(nameof(BinaryenModule));
 
         int bufferSize = 1024;
         while (true)
@@ -114,7 +153,7 @@ public class Module : IDisposable
     public byte[] ToBinary()
     {
         if (Handle == IntPtr.Zero)
-            throw new ObjectDisposedException(nameof(Module));
+            throw new ObjectDisposedException(nameof(BinaryenModule));
 
         int bufferSize = 1024;
         while (true)

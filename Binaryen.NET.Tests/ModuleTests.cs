@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Binaryen.NET;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace Binaryen.NET.Tests
         [Fact]
         public void InstantiateModule_ShouldNotBeNull()
         {
-            using var module = new Module();
+            using var module = new BinaryenModule();
             Assert.NotNull(module);
         }
 
@@ -17,22 +18,45 @@ namespace Binaryen.NET.Tests
         public void ParseModule_FromWAT_ShouldNotBeNull()
         {
             string wat = "(module)";
-            using var module = Module.Parse(wat);
-
+            using var module = BinaryenModule.Parse(wat);
             Assert.NotNull(module);
+        }
+
+        [Fact]
+        public void AddFunction_ShouldAppearInWAT()
+        {
+            using var module = new BinaryenModule();
+
+            var body = BinaryenExpression.Nop(module);
+            module.AddFunction(
+                name: "myFunc",
+                paramTypes: new[] { BinaryenType.Int32 },
+                resultType: BinaryenType.Int32,
+                localTypes: Array.Empty<BinaryenType>(),
+                body: body);
+
+            string wat = module.ToText();
+            Assert.Contains("(func $myFunc", wat);
         }
 
         [Fact]
         public void AddFunctionExport_ShouldAppearInWAT()
         {
-            using var module = new Module();
-            module.AddFunctionExport("internalFunc", "externalFunc");
+            using var module = new BinaryenModule();
 
+            // Add a dummy function first so it can be exported
+            var body = BinaryenExpression.Nop(module);
+            module.AddFunction(
+                name: "internalFunc",
+                paramTypes: new[] { BinaryenType.None },
+                resultType: BinaryenType.None,
+                localTypes: Array.Empty<BinaryenType>(),
+                body: body);
+
+            module.AddFunctionExport("internalFunc", "externalFunc");
             string wat = module.ToText();
 
             Assert.False(string.IsNullOrEmpty(wat));
-
-            // Check that the WAT contains the function export
             Assert.Contains("(export \"externalFunc\" (func $internalFunc))", wat);
             Assert.Contains("(func $internalFunc", wat);
         }
@@ -40,23 +64,19 @@ namespace Binaryen.NET.Tests
         [Fact]
         public void AddFunctionImport_ShouldAppearInWAT()
         {
-            using var module = new Module();
-            List<BinaryenType> paramTypes = new List<BinaryenType>() { BinaryenType.None };
-            List<BinaryenType> resultTypes = new List<BinaryenType>() { BinaryenType.Int32 };
+            using var module = new BinaryenModule();
+            var paramTypes = new[] { BinaryenType.None };
+            var resultType = BinaryenType.Int32;
 
             module.AddFunctionImport(
                 internalName: "myFunc",
                 externalModuleName: "env",
                 externalBaseName: "myFunc",
                 paramTypes: paramTypes,
-                resultTypes: resultTypes
-            );
+                resultType: resultType);
 
             string wat = module.ToText();
-
             Assert.False(string.IsNullOrEmpty(wat));
-
-            // Check that the WAT contains the function import
             Assert.Contains("(import \"env\" \"myFunc\"", wat);
             Assert.Contains("(func $myFunc", wat);
         }
@@ -64,9 +84,8 @@ namespace Binaryen.NET.Tests
         [Fact]
         public void ToText_ShouldReturnNonEmptyString()
         {
-            using var module = new Module();
+            using var module = new BinaryenModule();
             string wat = module.ToText();
-
             Assert.False(string.IsNullOrEmpty(wat));
             Assert.Contains("(module", wat);
         }
@@ -74,9 +93,8 @@ namespace Binaryen.NET.Tests
         [Fact]
         public void ToBinary_ShouldReturnNonEmptyByteArray()
         {
-            using var module = new Module();
+            using var module = new BinaryenModule();
             byte[] binary = module.ToBinary();
-
             Assert.NotNull(binary);
             Assert.NotEmpty(binary);
         }
@@ -84,7 +102,7 @@ namespace Binaryen.NET.Tests
         [Fact]
         public void ToBinary_CanBeCalledMultipleTimes()
         {
-            using var module = new Module();
+            using var module = new BinaryenModule();
             byte[] binary1 = module.ToBinary();
             byte[] binary2 = module.ToBinary();
 
@@ -92,13 +110,13 @@ namespace Binaryen.NET.Tests
             Assert.NotEmpty(binary1);
             Assert.NotNull(binary2);
             Assert.NotEmpty(binary2);
-            Assert.Equal(binary1.Length, binary2.Length); // basic sanity check
+            Assert.Equal(binary1.Length, binary2.Length);
         }
 
         [Fact]
         public void Dispose_CanBeCalledMultipleTimes()
         {
-            using var module = new Module();
+            using var module = new BinaryenModule();
             module.Dispose(); // first call
             var ex = Record.Exception(() => module.Dispose()); // second call
             Assert.Null(ex);
