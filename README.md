@@ -1,6 +1,9 @@
 # Binaryen.NET
 C# Bindings for the Binaryen WebAssembly toolchain.
 
+> [!IMPORTANT]
+> Binaryen.NET is currently a **prerelease** package. If you notice missing features or have ideas for improvements, contributions are welcome!
+
 ## Building
 - **If you only changed C# code:** The project automatically uses the pre-built native binaries from `runtimes/`, no manual compilation is needed.
 - **If you updated Binaryen itself:** Rebuild Binaryen as a shared library, then place the compiled binaries for each target runtime into the `runtimes/` folder.
