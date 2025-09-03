@@ -7,7 +7,7 @@
 	<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PackAsTool)' != 'true'">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Title>Binaryen.NET</Title>
-	<Version>0.1.0-alpha0</Version>
+	<Version>0.1.0-alpha</Version>
 	<PackageTags>was;wabt;wasp;wasm;wat</PackageTags>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
