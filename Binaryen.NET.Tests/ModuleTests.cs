@@ -23,11 +23,40 @@ namespace Binaryen.NET.Tests
         }
 
         [Fact]
-        public void AddFunctionExport_ShouldNotThrow()
+        public void AddFunctionExport_ShouldAppearInWAT()
         {
             using var module = new Module();
             module.AddFunctionExport("internalFunc", "externalFunc");
-            // Test passes if no exception is thrown
+
+            string wat = module.ToWAT();
+
+            Assert.False(string.IsNullOrEmpty(wat));
+
+            // Check that the WAT contains the function export
+            Assert.Contains("(export \"externalFunc\" (func $internalFunc))", wat);
+            Assert.Contains("(func $internalFunc", wat);
+        }
+
+        [Fact]
+        public void AddFunctionImport_ShouldAppearInWAT()
+        {
+            using var module = new Module();
+
+            module.AddFunctionImport(
+                internalName: "myFunc",
+                externalModuleName: "env",
+                externalBaseName: "myFunc",
+                paramTypes: BinaryenType.None,
+                resultTypes: BinaryenType.Int32
+            );
+
+            string wat = module.ToWAT();
+
+            Assert.False(string.IsNullOrEmpty(wat));
+
+            // Check that the WAT contains the function import
+            Assert.Contains("(import \"env\" \"myFunc\"", wat);
+            Assert.Contains("(func $myFunc", wat);
         }
 
         [Fact]

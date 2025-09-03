@@ -22,10 +22,21 @@ public class Module : IDisposable
 
     [DllImport(Interop.CPPDLL, CallingConvention = CallingConvention.Cdecl)]
     private extern static UIntPtr BinaryenModuleWriteText(IntPtr module, [Out] byte[] output, UIntPtr outputSize);
+
+    [DllImport(Interop.CPPDLL, CallingConvention = CallingConvention.Cdecl)]
+    private extern static void BinaryenAddFunctionImport(
+    IntPtr module,
+    string internalName,
+    string externalModuleName,
+    string externalBaseName,
+    IntPtr paramTypes,
+    IntPtr resultTypes);
     #endregion
 
     /// <summary> Pointer to the native class. </summary>
     internal IntPtr Handle { get; set; }
+
+    private bool _disposed;
 
     /// <summary> Creates a new instance of <see cref="Module"/>. </summary>
     public Module()
@@ -36,16 +47,44 @@ public class Module : IDisposable
     /// <summary> Creates a new instance of <see cref="Module"/> from the given pointer. </summary>
     internal Module(IntPtr handle) => Handle = handle;
 
-    /// <summary> Creates a new instance of <see cref="Module"/> from the given WAT string. </summary>
+    ~Module() => Dispose();
+
+    /// <summary>
+    /// Creates a new instance of <see cref="Module"/> from the given WAT string.
+    /// </summary>
     /// <param name="wat"> The WAT string. </param>
     public static Module Parse(string wat) => new Module(BinaryenModuleParse(wat));
 
-    /// <summary> Adds a function export. </summary>
+    /// <summary> Adds a function export to the module. </summary>
     public void AddFunctionExport(string internalName, string externalName) => BinaryenAddFunctionExport(Handle, internalName, externalName);
+
+    /// <summary> Adds a function import to the module. </summary>
+    public void AddFunctionImport(
+        string internalName,
+        string externalModuleName,
+        string externalBaseName,
+        BinaryenType paramTypes,
+        BinaryenType resultTypes)
+    {
+        if (paramTypes == null) 
+            throw new ArgumentNullException(nameof(paramTypes));
+
+        if (resultTypes == null)
+            throw new ArgumentNullException(nameof(resultTypes));
+
+        BinaryenAddFunctionImport(
+            Handle,
+            internalName,
+            externalModuleName,
+            externalBaseName,
+            paramTypes.Handle,
+            resultTypes.Handle);
+    }
 
     /// <summary> Converts the module to a WAT string. </summary>
     public string ToWAT()
     {
+        // TODO: Handle buffer better
         byte[] buffer = new byte[65536];
         UIntPtr written = BinaryenModuleWriteText(Handle, buffer, (UIntPtr)buffer.Length);
 
@@ -54,12 +93,12 @@ public class Module : IDisposable
 
     public void Dispose()
     {
-        if (Handle == IntPtr.Zero)
-            return;
-
-        BinaryenModuleDispose(Handle);
-        GC.SuppressFinalize(this);
-
-        Handle = IntPtr.Zero;
+        if (!_disposed && Handle != IntPtr.Zero)
+        {
+            BinaryenModuleDispose(Handle);
+            Handle = IntPtr.Zero;
+            _disposed = true;
+            GC.SuppressFinalize(this);
+        }
     }
 }

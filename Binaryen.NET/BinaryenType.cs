@@ -6,7 +6,7 @@ namespace Binaryen.NET;
 /// <summary>
 /// A Binaryen type.
 /// </summary>
-internal class BinaryenType
+public class BinaryenType
 {
     #region Native
     [DllImport(Interop.CPPDLL, CallingConvention = CallingConvention.Cdecl)]
