@@ -12,6 +12,7 @@
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	<Authors>Tweety</Authors>
+	<PackageProjectUrl>https://github.com/Xylon-Web/Binaryen.NET</PackageProjectUrl>
   </PropertyGroup>
 
 	<ItemGroup>
