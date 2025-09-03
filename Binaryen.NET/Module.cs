@@ -38,18 +38,15 @@ public class Module : IDisposable
 
     /// <summary> Pointer to the native class. </summary>
     internal IntPtr Handle { get; set; }
-
     private bool _disposed;
 
     /// <summary> Creates a new instance of <see cref="Module"/>. </summary>
-    public Module()
-    {
-        Handle = BinaryenModuleCreate();
-    }
+    public Module() => Handle = BinaryenModuleCreate();
 
     /// <summary> Creates a new instance of <see cref="Module"/> from the given pointer. </summary>
     internal Module(IntPtr handle) => Handle = handle;
 
+    /// <summary> Finalizer. </summary>
     ~Module() => Dispose();
 
     /// <summary>
@@ -66,8 +63,8 @@ public class Module : IDisposable
         string internalName,
         string externalModuleName,
         string externalBaseName,
-        BinaryenType paramTypes,
-        BinaryenType resultTypes)
+        IEnumerable<BinaryenType> paramTypes,
+        IEnumerable<BinaryenType> resultTypes)
     {
         if (paramTypes == null) 
             throw new ArgumentNullException(nameof(paramTypes));
@@ -75,13 +72,16 @@ public class Module : IDisposable
         if (resultTypes == null)
             throw new ArgumentNullException(nameof(resultTypes));
 
+        IntPtr paramTypesHandle = BinaryenType.Combine(paramTypes.ToArray()).Handle;
+        IntPtr resultTypesHandle = BinaryenType.Combine(resultTypes.ToArray()).Handle;
+
         BinaryenAddFunctionImport(
             Handle,
             internalName,
             externalModuleName,
             externalBaseName,
-            paramTypes.Handle,
-            resultTypes.Handle);
+            paramTypesHandle,
+            resultTypesHandle);
     }
 
     /// <summary> Converts the module to a Web Assembly Text (WAT) string. </summary>

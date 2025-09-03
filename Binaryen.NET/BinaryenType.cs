@@ -40,4 +40,19 @@ public class BinaryenType
     public static BinaryenType Float32 { get; } = new BinaryenType(BinaryenTypeFloat32());
     public static BinaryenType Float64 { get; } = new BinaryenType(BinaryenTypeFloat64());
     public static BinaryenType Vec128 { get; } = new BinaryenType(BinaryenTypeVec128());
+
+    /// <summary>
+    /// Combines multiple <see cref="BinaryenType"/> into one.
+    /// </summary>
+    public static BinaryenType Combine(params BinaryenType[] types)
+    {
+        if (types == null || types.Length == 0)
+            return None;
+
+        IntPtr combined = types[0].Handle;
+        for (int i = 1; i < types.Length; i++)
+            combined |= types[i].Handle; // Combine bitmask
+
+        return new BinaryenType(combined);
+    }
 }

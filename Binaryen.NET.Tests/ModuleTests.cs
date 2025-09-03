@@ -41,13 +41,15 @@ namespace Binaryen.NET.Tests
         public void AddFunctionImport_ShouldAppearInWAT()
         {
             using var module = new Module();
+            List<BinaryenType> paramTypes = new List<BinaryenType>() { BinaryenType.None };
+            List<BinaryenType> resultTypes = new List<BinaryenType>() { BinaryenType.Int32 };
 
             module.AddFunctionImport(
                 internalName: "myFunc",
                 externalModuleName: "env",
                 externalBaseName: "myFunc",
-                paramTypes: BinaryenType.None,
-                resultTypes: BinaryenType.Int32
+                paramTypes: paramTypes,
+                resultTypes: resultTypes
             );
 
             string wat = module.ToText();
