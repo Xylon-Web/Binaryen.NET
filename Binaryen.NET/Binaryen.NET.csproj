@@ -5,6 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 	<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PackAsTool)' != 'true'">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Title>Binaryen.NET</Title>
+	<Version>0.1.0-alpha0</Version>
+	<PackageTags>was;wabt;wasp;wasm;wat</PackageTags>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -16,6 +22,14 @@
 		<!-- Copy Native DLL -->
 		<None Include="$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\LICENSE">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
 
