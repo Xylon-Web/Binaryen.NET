@@ -84,8 +84,8 @@ public class Module : IDisposable
             resultTypes.Handle);
     }
 
-    /// <summary> Converts the module to a WAT string. </summary>
-    public string ToWAT()
+    /// <summary> Converts the module to a Web Assembly Text (WAT) string. </summary>
+    public string ToText()
     {
         if (Handle == IntPtr.Zero)
             throw new ObjectDisposedException(nameof(Module));
@@ -110,7 +110,7 @@ public class Module : IDisposable
     }
 
 
-    /// <summary> Serializes the module to its binary form. </summary>
+    /// <summary> Converts the module to a Web Assembly (WASM) byte array. </summary>
     public byte[] ToBinary()
     {
         if (Handle == IntPtr.Zero)

@@ -28,7 +28,7 @@ namespace Binaryen.NET.Tests
             using var module = new Module();
             module.AddFunctionExport("internalFunc", "externalFunc");
 
-            string wat = module.ToWAT();
+            string wat = module.ToText();
 
             Assert.False(string.IsNullOrEmpty(wat));
 
@@ -50,7 +50,7 @@ namespace Binaryen.NET.Tests
                 resultTypes: BinaryenType.Int32
             );
 
-            string wat = module.ToWAT();
+            string wat = module.ToText();
 
             Assert.False(string.IsNullOrEmpty(wat));
 
@@ -60,10 +60,10 @@ namespace Binaryen.NET.Tests
         }
 
         [Fact]
-        public void ToWAT_ShouldReturnNonEmptyString()
+        public void ToText_ShouldReturnNonEmptyString()
         {
             using var module = new Module();
-            string wat = module.ToWAT();
+            string wat = module.ToText();
 
             Assert.False(string.IsNullOrEmpty(wat));
             Assert.Contains("(module", wat);
