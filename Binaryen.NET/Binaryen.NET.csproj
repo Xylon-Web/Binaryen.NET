@@ -7,7 +7,7 @@
 	<RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' AND '$(PackAsTool)' != 'true'">$(NETCoreSdkRuntimeIdentifier)</RuntimeIdentifier>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Title>Binaryen.NET</Title>
-	<Version>0.1.0-alpha</Version>
+	<Version>0.1.1-alpha</Version>
 	<PackageTags>was;wabt;wasp;wasm;wat</PackageTags>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -18,13 +18,24 @@
 	<ItemGroup>
 		<!-- Native libraries -->
 		<None Include="$(SolutionDir)runtimes\win-x64\native\libbinaryen.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
+		<None Include="$(SolutionDir)runtimes\linux-x64\native\libbinaryen.so" Pack="true" PackagePath="runtimes/linux-x64/native/" />
+		<None Include="$(SolutionDir)runtimes\linux-x86\native\libbinaryen.so" Pack="true" PackagePath="runtimes/linux-x86/native/" />
 	</ItemGroup>
 
+<!-- Copy Native DLL and .so (if it exists) -->
+<ItemGroup>
+  <!-- Windows DLL -->
+  <None Include="$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.dll">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+
+  <!-- Linux / macOS .so -->
+  <None Include="$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.so" Condition="Exists('$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.so')">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
 	<ItemGroup>
-		<!-- Copy Native DLL -->
-		<None Include="$(SolutionDir)runtimes\$(RuntimeIdentifier)\native\libbinaryen.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Include="..\LICENSE">
 		  <Pack>True</Pack>
 		  <PackagePath>\</PackagePath>
