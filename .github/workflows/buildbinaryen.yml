@@ -10,19 +10,19 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MD /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON
+            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MD /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON
+            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
-            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON
+            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x64
           - os: ubuntu-latest
             arch: x86
-            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON
+            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x86
 
     runs-on: ${{ matrix.os }}
@@ -32,7 +32,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install build deps
+      - name: Install build deps (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
