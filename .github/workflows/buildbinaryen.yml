@@ -47,14 +47,9 @@ jobs:
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          if [ -d "binaryen/build/Release" ]; then
-            cp -r binaryen/build/Release/* package/runtimes/${{ matrix.runtime }}/native/
-          else
-            cp -r binaryen/build/* package/runtimes/${{ matrix.runtime }}/native/
-          fi
+          cp -r binaryen/build/* package/runtimes/${{ matrix.runtime }}/native/
         shell: bash
 
-      # Upload artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
