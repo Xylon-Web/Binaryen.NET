@@ -4,12 +4,6 @@ C# Bindings for the Binaryen WebAssembly toolchain.
 > [!IMPORTANT]
 > Binaryen.NET is currently a **prerelease** package. If you notice missing features or have ideas for improvements, contributions are welcome!
 
-## Platform Support
-Currently, Binaryen.NET includes pre-built native libraries **only for 64-bit Windows**.
-This means the NuGet package does not work on other platforms by default.
-
-If you are using a different platform and can provide the necessary binaries, contributions adding them to the `runtimes/` folder are welcome.
-
 ## Building
 Ensure all Git submodules are up to date:
 ```bash
