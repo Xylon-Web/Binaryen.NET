@@ -1,0 +1,54 @@
+name: Build Binaryen
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MD /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON
+            runtime: win-x64
+          - os: windows-latest
+            arch: x86
+            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON
+            runtime: win-x86
+          - os: ubuntu-latest
+            arch: x64
+            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON
+            runtime: linux-x64
+          - os: ubuntu-latest
+            arch: x86
+            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON
+            runtime: linux-x86
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++-multilib gcc-multilib cmake make
+
+      - name: Configure
+        run: cmake -B build ${{ matrix.cmake-args }}
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Copy to NuGet runtime folder
+        run: |
+          mkdir -p package/runtimes/${{ matrix.runtime }}/native
+          cp build/Release/* package/runtimes/${{ matrix.runtime }}/native/ || cp build/* package/runtimes/${{ matrix.runtime }}/native/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtimes-${{ matrix.runtime }}
+          path: package/runtimes/${{ matrix.runtime }}
