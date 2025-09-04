@@ -41,14 +41,14 @@ jobs:
       - name: Configure
         run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
 
-      - name: Build
-        run: |
-          if [ "${{ runner.os }}" == "Linux" ]; then
-            cmake --build binaryen/build -- -j$(nproc)
-          else
-            cmake --build binaryen/build --config Release -- /m
-          fi
-        shell: bash
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: cmake --build binaryen/build -- -j$(nproc)
+      
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build binaryen/build --config Release -- /m
+        shell: pwsh
 
       - name: Copy to NuGet runtime folder
         run: |
