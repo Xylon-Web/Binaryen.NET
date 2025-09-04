@@ -38,7 +38,7 @@ public class BinaryenExpression
 
     public static BinaryenExpression LocalGet(BinaryenModule module, uint index, BinaryenType type)
     {
-        var handle = BinaryenLocalGet(module.Handle, index, type.Handle);
+        var handle = BinaryenLocalGet(module.Handle, index, (nint)type.Handle);
         return new BinaryenExpression(handle);
     }
 
@@ -52,17 +52,5 @@ public class BinaryenExpression
     {
         var handle = BinaryenNop(module.Handle);
         return new BinaryenExpression(handle);
-    }
-
-    public static BinaryenExpression Combine(params BinaryenExpression[] values)
-    {
-        if (values == null || values.Length == 0)
-            return null;
-
-        IntPtr combined = values[0].Handle;
-        for (int i = 1; i < values.Length; i++)
-            combined |= values[i].Handle; // Combine bitmask
-
-        return new BinaryenExpression(combined);
     }
 }

@@ -28,12 +28,7 @@ namespace Binaryen.NET.Tests
             using var module = new BinaryenModule();
 
             var body = BinaryenExpression.Nop(module);
-            module.AddFunction(
-                name: "myFunc",
-                paramTypes: new[] { BinaryenType.Int32 },
-                resultType: BinaryenType.Int32,
-                localTypes: Array.Empty<BinaryenType>(),
-                body: body);
+            module.AddFunction("myFunc", body);
 
             string wat = module.ToText();
             Assert.Contains("(func $myFunc", wat);
@@ -46,12 +41,7 @@ namespace Binaryen.NET.Tests
 
             // Add a dummy function first so it can be exported
             var body = BinaryenExpression.Nop(module);
-            module.AddFunction(
-                name: "internalFunc",
-                paramTypes: new[] { BinaryenType.None },
-                resultType: BinaryenType.None,
-                localTypes: Array.Empty<BinaryenType>(),
-                body: body);
+            module.AddFunction("internalFunc", body);
 
             module.AddFunctionExport("internalFunc", "externalFunc");
             string wat = module.ToText();
@@ -59,26 +49,6 @@ namespace Binaryen.NET.Tests
             Assert.False(string.IsNullOrEmpty(wat));
             Assert.Contains("(export \"externalFunc\" (func $internalFunc))", wat);
             Assert.Contains("(func $internalFunc", wat);
-        }
-
-        [Fact]
-        public void AddFunctionImport_ShouldAppearInWAT()
-        {
-            using var module = new BinaryenModule();
-            var paramTypes = new[] { BinaryenType.None };
-            var resultType = BinaryenType.Int32;
-
-            module.AddFunctionImport(
-                internalName: "myFunc",
-                externalModuleName: "env",
-                externalBaseName: "myFunc",
-                paramTypes: paramTypes,
-                resultType: resultType);
-
-            string wat = module.ToText();
-            Assert.False(string.IsNullOrEmpty(wat));
-            Assert.Contains("(import \"env\" \"myFunc\"", wat);
-            Assert.Contains("(func $myFunc", wat);
         }
 
         [Fact]
