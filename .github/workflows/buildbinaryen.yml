@@ -42,12 +42,18 @@ jobs:
         run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
 
       - name: Build
-        run: cmake --build binaryen/build --config Release
+        run: |
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            cmake --build binaryen/build -- -j$(nproc)
+          else
+            cmake --build binaryen/build --config Release -- /m
+          fi
+        shell: bash
 
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          cp -r binaryen/build/bin/* package/runtimes/${{ matrix.runtime }}/native/
+          cp -r binaryen/build/lib/* package/runtimes/${{ matrix.runtime }}/native/
         shell: bash
 
       - name: Upload artifact
