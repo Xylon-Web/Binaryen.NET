@@ -29,24 +29,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Install build deps (Linux only)
+      - name: Install build deps
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y g++-multilib gcc-multilib cmake make
 
       - name: Configure
-        run: cmake -B build ${{ matrix.cmake-args }}
+        run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build binaryen/build --config Release
 
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          cp build/Release/* package/runtimes/${{ matrix.runtime }}/native/ || cp build/* package/runtimes/${{ matrix.runtime }}/native/
+          cp binaryen/build/Release/* package/runtimes/${{ matrix.runtime }}/native/ || cp binaryen/build/* package/runtimes/${{ matrix.runtime }}/native/
 
+      # Upload artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
