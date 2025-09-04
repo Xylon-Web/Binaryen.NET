@@ -47,7 +47,7 @@ jobs:
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          cp -r binaryen/build/* package/runtimes/${{ matrix.runtime }}/native/
+          cp -r binaryen/build/bin/* package/runtimes/${{ matrix.runtime }}/native/
         shell: bash
 
       - name: Upload artifact
