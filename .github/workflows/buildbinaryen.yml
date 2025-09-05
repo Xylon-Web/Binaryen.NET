@@ -72,10 +72,10 @@ jobs:
           sudo apt-get install -y g++-multilib gcc-multilib cmake make mingw-w64
 
       - name: Configure
-        run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
+        run: cmake -S binaryen -B binaryen ${{ matrix.cmake-args }}
 
       - name: Build
-        run: cmake --build binaryen/build -- -j$(nproc)
+        run: cmake --build binaryen -- -j$(nproc)
 
       - name: Copy to NuGet runtime folder
         run: |
