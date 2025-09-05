@@ -36,10 +36,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-16 clang++-16 cmake make
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100
-
+          sudo apt-get install -y clang clang++ cmake make
 
       - name: Install build deps (Windows)
         if: runner.os == 'Windows'
