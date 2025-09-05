@@ -10,19 +10,45 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            mingw-path: C:/tools/mingw64/bin
+            cmake-args: >
+              -G "MinGW Makefiles"
+              -DCMAKE_C_COMPILER="C:/tools/mingw64/bin/x86_64-w64-mingw32-gcc.exe"
+              -DCMAKE_CXX_COMPILER="C:/tools/mingw64/bin/x86_64-w64-mingw32-g++.exe"
+              -DCMAKE_C_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++"
+              -DBUILD_STATIC_LIB=OFF
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            mingw-path: C:/tools/mingw32/bin
+            cmake-args: >
+              -G "MinGW Makefiles"
+              -DCMAKE_C_COMPILER="C:/tools/mingw32/bin/i686-w64-mingw32-gcc.exe"
+              -DCMAKE_CXX_COMPILER="C:/tools/mingw32/bin/i686-w64-mingw32-g++.exe"
+              -DCMAKE_C_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++"
+              -DBUILD_STATIC_LIB=OFF
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
-            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
+              -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x64
           - os: ubuntu-latest
             arch: x86
-            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
+              -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x86
 
     runs-on: ${{ matrix.os }}
@@ -44,7 +70,6 @@ jobs:
           choco install mingw --no-progress --yes
           choco install cmake ninja --no-progress --yes
 
-      # Limit Binaryen to 1 core
       - name: Limit Binaryen to 1 core
         run: echo "BINARYEN_CORES=1" >> $GITHUB_ENV
 
@@ -66,8 +91,4 @@ jobs:
           cp -r binaryen/build/lib/* package/runtimes/${{ matrix.runtime }}/native/
         shell: bash
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: runtimes-${{ matrix.runtime }}
-          path: package/runtimes/${{ matrix.runtime }}
+      - n
