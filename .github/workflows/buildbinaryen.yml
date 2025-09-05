@@ -10,11 +10,11 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_FLAGS="-m64 -w -static -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_FLAGS="-m32 -w -static -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
@@ -38,17 +38,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-multilib gcc-multilib cmake make
 
+      - name: Install build deps (Windows MinGW)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-${{ matrix.arch }}-gcc
+            mingw-w64-${{ matrix.arch }}-cmake
+            mingw-w64-${{ matrix.arch }}-make
+
       - name: Configure
         run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
+        shell: msys2 {0}
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: cmake --build binaryen/build -- -j$(nproc)
-      
+
       - name: Build (Windows)
         if: runner.os == 'Windows'
-        run: cmake --build binaryen/build --config Release -- /m
-        shell: pwsh
+        run: cmake --build binaryen/build -- -j$(nproc)
+        shell: msys2 {0}
 
       - name: Copy to NuGet runtime folder
         run: |
