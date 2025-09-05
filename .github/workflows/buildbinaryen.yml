@@ -10,46 +10,10 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            mingw-path: C:/tools/mingw64/bin
-            cmake-args: >
-              -G "MinGW Makefiles"
-              -DCMAKE_C_COMPILER="C:/tools/mingw64/bin/x86_64-w64-mingw32-gcc.exe"
-              -DCMAKE_CXX_COMPILER="C:/tools/mingw64/bin/x86_64-w64-mingw32-g++.exe"
-              -DCMAKE_C_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++"
-              -DBUILD_STATIC_LIB=OFF
-              -DBUILD_SHARED_LIBS=ON
-              -DBUILD_TOOLS=OFF
-              -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            mingw-path: C:/tools/mingw32/bin
-            cmake-args: >
-              -G "MinGW Makefiles"
-              -DCMAKE_C_COMPILER="C:/tools/mingw32/bin/i686-w64-mingw32-gcc.exe"
-              -DCMAKE_CXX_COMPILER="C:/tools/mingw32/bin/i686-w64-mingw32-g++.exe"
-              -DCMAKE_C_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++"
-              -DBUILD_STATIC_LIB=OFF
-              -DBUILD_SHARED_LIBS=ON
-              -DBUILD_TOOLS=OFF
-              -DBUILD_TESTS=OFF
             runtime: win-x86
-          - os: ubuntu-latest
-            arch: x64
-            cmake-args: >
-              -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
-              -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
-            runtime: linux-x64
-          - os: ubuntu-latest
-            arch: x86
-            cmake-args: >
-              -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
-              -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
-            runtime: linux-x86
 
     runs-on: ${{ matrix.os }}
 
@@ -58,41 +22,40 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install build deps (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y g++-multilib gcc-multilib cmake make
-
-      - name: Install build deps (Windows)
+      - name: Install MinGW and CMake
         if: runner.os == 'Windows'
         run: |
           choco install mingw --no-progress --yes
           choco install cmake ninja --no-progress --yes
+        shell: pwsh
+
+      - name: Add MinGW to PATH
+        if: runner.os == 'Windows'
+        run: |
+          if (${{ matrix.arch }} -eq 'x64') {
+            $mingw = "C:\tools\mingw64\bin"
+          } else {
+            $mingw = "C:\tools\mingw32\bin"
+          }
+          $env:PATH = "$mingw;$env:PATH"
+          echo "PATH=$env:PATH" >> $GITHUB_ENV
+        shell: pwsh
 
       - name: Limit Binaryen to 1 core
         run: echo "BINARYEN_CORES=1" >> $GITHUB_ENV
 
       - name: Configure
-        run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
-
-      - name: Build (Linux)
-        if: runner.os == 'Linux'
-        run: cmake --build binaryen/build -- -j1
+        run: |
+          if (${{ runner.os }} -eq 'Windows') {
+            if (${{ matrix.arch }} -eq 'x64') {
+              cmake -S binaryen -B binaryen/build -G "MinGW Makefiles" -DCMAKE_C_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-W0 -m64 -static-libgcc -static-libstdc++" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            } else {
+              cmake -S binaryen -B binaryen/build -G "MinGW Makefiles" -DCMAKE_C_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-W0 -m32 -static-libgcc -static-libstdc++" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            }
+          }
+        shell: pwsh
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         run: cmake --build binaryen/build -- -j1
         shell: pwsh
-
-      - name: Copy to NuGet runtime folder
-        run: |
-          mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          cp -r binaryen/build/lib/* package/runtimes/${{ matrix.runtime }}/native/
-        shell: bash
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: runtimes-${{ matrix.runtime }}
-          path: package/runtimes/${{ matrix.runtime }}
