@@ -10,17 +10,19 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            compiler-prefix: C:/tools/mingw64/bin/x86_64-w64-mingw32
+            cmake-args: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            compiler-prefix: C:/tools/mingw32/bin/i686-w64-mingw32
+            cmake-args: -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
+            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x64
           - os: ubuntu-latest
             arch: x86
+            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x86
 
     runs-on: ${{ matrix.os }}
@@ -34,46 +36,24 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-multilib gcc-multilib cmake make ninja-build
+          sudo apt-get install -y g++-multilib gcc-multilib cmake make
 
-      - name: Install build deps (Windows)
+      - name: Install MinGW (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install mingw --no-progress --yes
-          choco install cmake ninja --no-progress --yes
-
-      # Limit Binaryen to 1 core
-      - name: Limit Binaryen to 1 core
-        run: echo "BINARYEN_CORES=1" >> $GITHUB_ENV
+          choco install mingw -y
+          refreshenv
 
       - name: Configure
-        if: runner.os == 'Linux'
-        run: |
-          cmake -S binaryen -B binaryen/build \
-            -DCMAKE_C_FLAGS="-m${{ matrix.arch == 'x64' && echo 64 || echo 32 }} -w -static-libgcc -static-libstdc++" \
-            -DCMAKE_CXX_FLAGS="-m${{ matrix.arch == 'x64' && echo 64 || echo 32 }} -w -static-libgcc -static-libstdc++" \
-            -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
-
-      - name: Configure
-        if: runner.os == 'Windows'
-        run: |
-          $CC="${{ matrix.compiler-prefix }}-gcc.exe"
-          $CXX="${{ matrix.compiler-prefix }}-g++.exe"
-          cmake -S binaryen -B binaryen/build -G "MinGW Makefiles" `
-            -DCMAKE_C_COMPILER=$CC `
-            -DCMAKE_CXX_COMPILER=$CXX `
-            -DCMAKE_C_FLAGS="-W0 -m${{ matrix.arch == 'x64' && echo 64 || echo 32 }} -static-libgcc -static-libstdc++" `
-            -DCMAKE_CXX_FLAGS="-W0 -m${{ matrix.arch == 'x64' && echo 64 || echo 32 }} -static-libgcc -static-libstdc++" `
-            -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
-        shell: pwsh
+        run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
 
       - name: Build (Linux)
         if: runner.os == 'Linux'
-        run: cmake --build binaryen/build -- -j1
-
+        run: cmake --build binaryen/build -- -j$(nproc)
+      
       - name: Build (Windows)
         if: runner.os == 'Windows'
-        run: cmake --build binaryen/build -- -j1
+        run: cmake --build binaryen/build -- -j $Env:NUMBER_OF_PROCESSORS
         shell: pwsh
 
       - name: Copy to NuGet runtime folder
