@@ -91,4 +91,8 @@ jobs:
           cp -r binaryen/build/lib/* package/runtimes/${{ matrix.runtime }}/native/
         shell: bash
 
-      - n
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtimes-${{ matrix.runtime }}
+          path: package/runtimes/${{ matrix.runtime }}
