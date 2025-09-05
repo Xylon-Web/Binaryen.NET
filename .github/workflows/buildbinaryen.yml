@@ -8,25 +8,55 @@ jobs:
     strategy:
       matrix:
         include:
+          # Linux 64-bit
           - os: ubuntu-latest
             arch: x64
             target: linux
-            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
+              -BINARYEN_CORES = 1
             runtime: linux-x64
+          # Linux 32-bit
           - os: ubuntu-latest
             arch: x86
             target: linux
-            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
+              -BINARYEN_CORES = 1
             runtime: linux-x86
+          # Windows 64-bit (cross-compile)
           - os: ubuntu-latest
             arch: x64
             target: windows
-            cmake-args: -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_SYSTEM_NAME=Windows
+              -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
+              -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
+              -BINARYEN_CORES = 1
             runtime: win-x64
+          # Windows 32-bit (cross-compile)
           - os: ubuntu-latest
             arch: x86
             target: windows
-            cmake-args: -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: >
+              -DCMAKE_SYSTEM_NAME=Windows
+              -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc
+              -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+              -DBUILD_SHARED_LIBS=ON
+              -DBUILD_TOOLS=OFF
+              -DBUILD_TESTS=OFF
+              -BINARYEN_CORES = 1
             runtime: win-x86
 
     runs-on: ${{ matrix.os }}
