@@ -32,30 +32,28 @@ jobs:
               -DBUILD_TESTS=OFF
               -DBINARYEN_CORES=1
             runtime: linux-x86
-          # Windows 64-bit
-          - os: windows-latest
+          # Windows 64-bit (cross-compile)
+          - os: ubuntu-latest
             arch: x64
             target: windows
             cmake-args: >
-              -DCMAKE_C_COMPILER=gcc
-              -DCMAKE_CXX_COMPILER=g++
-              -DCMAKE_C_FLAGS="-static -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-static -static-libgcc -static-libstdc++"
-              -DBUILD_SHARED_LIBS=OFF
+              -DCMAKE_SYSTEM_NAME=Windows
+              -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
+              -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+              -DBUILD_SHARED_LIBS=ON
               -DBUILD_TOOLS=OFF
               -DBUILD_TESTS=OFF
               -DBINARYEN_CORES=1
             runtime: win-x64
-          # Windows 32-bit (native g++, static)
-          - os: windows-latest
+          # Windows 32-bit (cross-compile)
+          - os: ubuntu-latest
             arch: x86
             target: windows
             cmake-args: >
+              -DCMAKE_SYSTEM_NAME=Windows
               -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc
               -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
-              -DCMAKE_C_FLAGS="-static -static-libgcc -static-libstdc++"
-              -DCMAKE_CXX_FLAGS="-static -static-libgcc -static-libstdc++"
-              -DBUILD_SHARED_LIBS=OFF
+              -DBUILD_SHARED_LIBS=ON
               -DBUILD_TOOLS=OFF
               -DBUILD_TESTS=OFF
               -DBINARYEN_CORES=1
@@ -68,19 +66,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-multilib gcc-multilib cmake make
-
-      - name: Install MinGW (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          choco install mingw -y
-          refreshenv
-          echo "Added g++ to PATH: $(where g++)"
+          sudo apt-get install -y g++-multilib gcc-multilib cmake make mingw-w64
 
       - name: Configure
         run: cmake -S binaryen -B binaryen ${{ matrix.cmake-args }}
@@ -91,7 +80,7 @@ jobs:
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          if [ "${{ matrix.target }}" = "windows" ]; then
+          if [[ "${{ matrix.target }}" == "windows" ]]; then
             cp -r binaryen/bin/* package/runtimes/${{ matrix.runtime }}/native/
           else
             cp -r binaryen/lib/* package/runtimes/${{ matrix.runtime }}/native/
