@@ -10,11 +10,11 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -G "MinGW Makefiles" -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++ -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
@@ -38,6 +38,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-multilib gcc-multilib cmake make
 
+      - name: Install build deps (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install mingw --no-progress --yes
+          choco install cmake ninja --no-progress --yes
+
       # Limit Binaryen to 1 core
       - name: Limit Binaryen to 1 core
         run: echo "BINARYEN_CORES=1" >> $GITHUB_ENV
@@ -48,10 +54,10 @@ jobs:
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: cmake --build binaryen/build -- -j1
-      
+
       - name: Build (Windows)
         if: runner.os == 'Windows'
-        run: cmake --build binaryen/build --config Release -- /m:1
+        run: cmake --build binaryen/build -- -j1
         shell: pwsh
 
       - name: Copy to NuGet runtime folder
