@@ -10,19 +10,19 @@ jobs:
         include:
           - os: windows-latest
             arch: x64
-            cmake-args: -A x64 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -A x64 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x64
           - os: windows-latest
             arch: x86
-            cmake-args: -A Win32 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -A Win32 -DCMAKE_CXX_FLAGS="/W0 /MT" -DBUILD_STATIC_LIB=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: win-x86
           - os: ubuntu-latest
             arch: x64
-            cmake-args: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x64
           - os: ubuntu-latest
             arch: x86
-            cmake-args: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
+            cmake-args: -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=ON -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF
             runtime: linux-x86
 
     runs-on: ${{ matrix.os }}
@@ -36,13 +36,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang clang++ cmake make
-
-      - name: Install build deps (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install llvm -y
-        shell: pwsh
+          sudo apt-get install -y g++-multilib gcc-multilib cmake make
 
       - name: Configure
         run: cmake -S binaryen -B binaryen/build ${{ matrix.cmake-args }}
@@ -50,7 +44,7 @@ jobs:
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: cmake --build binaryen/build -- -j$(nproc)
-
+      
       - name: Build (Windows)
         if: runner.os == 'Windows'
         run: cmake --build binaryen/build --config Release -- /m
