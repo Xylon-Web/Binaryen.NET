@@ -32,27 +32,25 @@ jobs:
               -DBUILD_TESTS=OFF
               -DBINARYEN_CORES=1
             runtime: linux-x86
-          # Windows 64-bit (cross-compile)
-          - os: ubuntu-latest
+          # Windows 64-bit (native build)
+          - os: windows-latest
             arch: x64
             target: windows
             cmake-args: >
-              -DCMAKE_SYSTEM_NAME=Windows
-              -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
-              -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+              -DCMAKE_C_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m64 -w -static-libgcc -static-libstdc++"
               -DBUILD_SHARED_LIBS=ON
               -DBUILD_TOOLS=OFF
               -DBUILD_TESTS=OFF
               -DBINARYEN_CORES=1
             runtime: win-x64
-          # Windows 32-bit (cross-compile)
-          - os: ubuntu-latest
+          # Windows 32-bit (native build)
+          - os: windows-latest
             arch: x86
             target: windows
             cmake-args: >
-              -DCMAKE_SYSTEM_NAME=Windows
-              -DCMAKE_C_COMPILER=i686-w64-mingw32-gcc
-              -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+              -DCMAKE_C_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
+              -DCMAKE_CXX_FLAGS="-m32 -w -static-libgcc -static-libstdc++"
               -DBUILD_SHARED_LIBS=ON
               -DBUILD_TOOLS=OFF
               -DBUILD_TESTS=OFF
@@ -66,16 +64,28 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install build dependencies
+      - name: Install build dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y g++-multilib gcc-multilib cmake make mingw-w64
+          sudo apt-get install -y g++-multilib gcc-multilib cmake make
+
+      - name: Install build dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install mingw --version 13.2.0 -y --force
 
       - name: Configure
         run: cmake -S binaryen -B binaryen ${{ matrix.cmake-args }}
 
       - name: Build
-        run: cmake --build binaryen -- -j$(nproc)
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            cmake --build binaryen -- -j$env:NUMBER_OF_PROCESSORS
+          else
+            cmake --build binaryen -- -j$(nproc)
+          fi
+        shell: bash
 
       - name: Copy to NuGet runtime folder
         run: |
