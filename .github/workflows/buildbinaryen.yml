@@ -80,7 +80,11 @@ jobs:
       - name: Copy to NuGet runtime folder
         run: |
           mkdir -p package/runtimes/${{ matrix.runtime }}/native
-          cp -r binaryen/lib/* package/runtimes/${{ matrix.runtime }}/native/
+          if [[ "${{ matrix.target }}" == "windows" ]]; then
+            cp -r binaryen/bin/* package/runtimes/${{ matrix.runtime }}/native/
+          else
+            cp -r binaryen/lib/* package/runtimes/${{ matrix.runtime }}/native/
+          fi
         shell: bash
 
       - name: Upload artifact
